@@ -100,7 +100,9 @@ namespace WebApi.Controllers
 
                 if (string.IsNullOrEmpty(startDate))
                 {
+#pragma warning disable S6562
                     _startDate = DateTime.SpecifyKind(new DateTime(1972, 1, 1), DateTimeKind.Utc);
+#pragma warning restore S6562
                 }
                 else if (!DateTime.TryParseExact(startDate, formats, culture, DateTimeStyles.None, out _startDate))
                 {
