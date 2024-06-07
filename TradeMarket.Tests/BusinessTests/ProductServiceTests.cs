@@ -85,6 +85,7 @@ namespace TradeMarket.Tests.BusinessTests
             //arrange
             var mockUnitOfWork = new Mock<IUnitOfWork>();
             mockUnitOfWork.Setup(m => m.ProductRepository.AddAsync(It.IsAny<Product>()));
+            mockUnitOfWork.Setup(m => m.ProductCategoryRepository.GetByIdAsync(It.IsAny<int>()));
 
             var productService = new ProductService(mockUnitOfWork.Object, UnitTestHelper.CreateMapperProfile());
             var product = new ProductModel { Id = 11, ProductName = "Orange juice", ProductCategoryId = 9, Price = 29.00m };

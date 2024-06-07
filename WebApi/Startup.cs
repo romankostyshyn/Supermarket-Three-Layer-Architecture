@@ -33,11 +33,25 @@ namespace WebApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //ToDo
+            services.AddDbContext<TradeMarketDbContext>(
+                option => option.UseSqlServer(Configuration.GetConnectionString("Market"))
+                );
+            services.AddAutoMapper(cfg => cfg.AddProfile<AutomapperProfile>());
+
+
+            services.AddTransient<IUnitOfWork, UnitOfWork>();
+
+            services.AddTransient<ICustomerService, CustomerService>();
+            services.AddTransient<IProductService, ProductService>();
+            services.AddTransient<IReceiptService, ReceiptService>();
+            services.AddTransient<IStatisticService, StatisticService>();
+
 
             services.AddControllers();
-
-            //ToDo
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebApp", Version = "v1" });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,9 +60,11 @@ namespace WebApi
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-            }
 
-            //ToDo
+                //UseSwagger
+                app.UseSwagger();
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "WebApp v1"));
+            }
 
             app.UseHttpsRedirection();
 
@@ -56,11 +72,7 @@ namespace WebApi
 
             app.UseAuthorization();
 
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }
 }
