@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
+using System.Globalization;
+using System.Linq;
 
 namespace WebApi.Controllers
 {
@@ -51,46 +53,68 @@ namespace WebApi.Controllers
             catch { return BadRequest(); }
         }
 
-
-
-        //Ошибка Сервиса
-
         //  GET/api/statistic/activity/{customerCount}?startDate= 2020-7-21&endDate= 2020-7-22
         [HttpGet("activity/{customerCount}")]
         public async Task<ActionResult<IEnumerable<CustomerActivityModel>>> GetMostActiveCustomer
-            (int customerCount, [FromQuery] string startDate = null, [FromQuery] string endDate = null)
+    (int customerCount, [FromQuery] string startDate = null, [FromQuery] string endDate = null)
         {
             try
             {
-                var _startDate = DateTime.Parse(startDate);
-                var _endDate = DateTime.Parse(endDate);
+                var formats = new[] { "yyyy-M-d", "yyyy-MM-dd", "yyyy-M-dd", "yyyy-MM-d" };
+                var culture = CultureInfo.InvariantCulture;
 
-                var response = await _statisticService.GetMostValuableCustomersAsync(customerCount, _startDate, _endDate);
+                if (string.IsNullOrEmpty(startDate) || string.IsNullOrEmpty(endDate))
+                {
+                    return BadRequest("Start date and end date are required.");
+                }
 
-                if (response != null) return Ok(response);
-                else return NotFound(response);
+                if (DateTime.TryParseExact(startDate, formats, culture, DateTimeStyles.None, out var _startDate) &&
+                    DateTime.TryParseExact(endDate, formats, culture, DateTimeStyles.None, out var _endDate))
+                {
+                    var response = await _statisticService.GetMostValuableCustomersAsync(customerCount, _startDate, _endDate);
+
+                    if (response != null && response.Any())
+                        return Ok(response);
+                    else
+                        return NotFound();
+                }
+                else
+                {
+                    return BadRequest("Invalid date format. Please use yyyy-MM-dd format.");
+                }
             }
             catch { return BadRequest(); }
         }
 
-
         //   GET/api/statistic/income/{categoryId}?startDate= 2020-7-21&endDate= 2020-7-22
         [HttpGet("income/{categoryId}")]
         public async Task<ActionResult<decimal>> GetIncomeOfCategory
-            (int categoryId, [FromQuery] string startDate = null, [FromQuery] string endDate = null)
+    (int categoryId, [FromQuery] string startDate = null, [FromQuery] string endDate = null)
         {
             try
             {
                 DateTime _startDate;
                 DateTime _endDate;
+                var formats = new[] { "yyyy-M-d", "yyyy-MM-dd", "yyyy-M-dd", "yyyy-MM-d" };
+                var culture = CultureInfo.InvariantCulture;
 
-                if (startDate == null) { _startDate = new DateTime(1972, 01, 01); }
-                else { _startDate = DateTime.Parse(startDate); }
+                if (string.IsNullOrEmpty(startDate))
+                {
+                    _startDate = DateTime.SpecifyKind(new DateTime(1972, 1, 1), DateTimeKind.Utc);
+                }
+                else if (!DateTime.TryParseExact(startDate, formats, culture, DateTimeStyles.None, out _startDate))
+                {
+                    return BadRequest("Invalid start date format. Please use yyyy-MM-dd format.");
+                }
 
-
-                if (endDate == null) { _endDate = DateTime.Now; }
-                else { _endDate = DateTime.Parse(endDate); }
-
+                if (string.IsNullOrEmpty(endDate))
+                {
+                    _endDate = DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Local);
+                }
+                else if (!DateTime.TryParseExact(endDate, formats, culture, DateTimeStyles.None, out _endDate))
+                {
+                    return BadRequest("Invalid end date format. Please use yyyy-MM-dd format.");
+                }
 
                 var response = await _statisticService.GetIncomeOfCategoryInPeriod(categoryId, _startDate, _endDate);
 
@@ -98,6 +122,7 @@ namespace WebApi.Controllers
             }
             catch { return BadRequest(); }
         }
+
 
     }
 }

@@ -13,7 +13,6 @@ namespace WebApi.Controllers
     {
         private readonly IProductService _productService;
 
-        //Inject product service via constructor
         public ProductsController(IProductService productService)
         {
             _productService = productService;

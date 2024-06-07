@@ -196,7 +196,9 @@ namespace TradeMarket.Tests.BusinessTests
                 new CustomerActivityModel { CustomerId = 3, CustomerName = "Dezmond Morris", ReceiptSum = 159 }
             };
 
-        public static IEnumerable<ProductModel> ExpectedCustomersMostPopularProducts = 
+#pragma warning disable CA2211 // Non-constant fields should not be visible
+        public static IEnumerable<ProductModel> ExpectedCustomersMostPopularProducts =
+#pragma warning restore CA2211 // Non-constant fields should not be visible
             new List<ProductModel>()
             {
                ProductModels.ElementAt(7), ProductModels.ElementAt(1), ProductModels.ElementAt(8)

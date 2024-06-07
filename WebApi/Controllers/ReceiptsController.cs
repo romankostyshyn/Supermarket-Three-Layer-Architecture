@@ -5,6 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
+using Microsoft.Data.SqlClient.Server;
+using System.Globalization;
+using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace WebApi.Controllers
 {
@@ -81,13 +85,22 @@ namespace WebApi.Controllers
         {
             try
             {
-                var _startDate = DateTime.Parse(startDate);
-                var _endDate = DateTime.Parse(endDate);
+                var formats = new[] { "yyyy-M-d", "yyyy-MM-dd", "yyyy-M-dd", "yyyy-MM-d" };
+                var culture = CultureInfo.InvariantCulture;
+                if (DateTime.TryParseExact(startDate, formats, culture, DateTimeStyles.None, out var _startDate) &&
+            DateTime.TryParseExact(endDate, formats, culture, DateTimeStyles.None, out var _endDate))
+                {
+                    var response = await _receiptService.GetReceiptsByPeriodAsync(_startDate, _endDate);
 
-                var response = await _receiptService.GetReceiptsByPeriodAsync(_startDate, _endDate);
-
-                if (response != null) return Ok(response);
-                else return NotFound(response);
+                    if (response != null && response.Any())
+                        return Ok(response);
+                    else
+                        return NotFound();
+                }
+                else
+                {
+                    return BadRequest("Invalid date format. Please use yyyy-MM-dd format.");
+                }
             }
             catch { return BadRequest(); }
         }
